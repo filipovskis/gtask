@@ -191,4 +191,4 @@ hook.Add("Tick", "gtask.Tick", function()
     end
 end)
 
-_G["task"] = task
+_G.task = task
