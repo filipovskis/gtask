@@ -55,7 +55,7 @@ local function CallTask(index, curtime)
     return false
 end
 
-hook.Add("Think", "Task.Think", function()
+hook.Add("Think", "gtask.Think", function()
     local ct = CurTime()
     for index = 1, #stored do
         CallTask(index, ct)
