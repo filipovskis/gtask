@@ -99,6 +99,7 @@ function Create(time, func, repeats)
         repeats = repeats,
         infinite = repeats == 0,
     }
+    
     return id
 end
 
