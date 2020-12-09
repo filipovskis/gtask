@@ -24,7 +24,6 @@ SOFTWARE.
 
 local remove, CurTime, isstring, isnumber, isfunction, assert, next = table.remove, CurTime, isstring, isnumber, isfunction, assert, next
 
-local isTickTaskRunning = false
 local stored, tick_stored = {}, {}
 
 local function CallTask(index, curtime)
@@ -122,7 +121,7 @@ end
 --- Force call task by index
 ---@param index number
 function Call(index, tick)
-    return (tick and CallTickTask or CallTask)(index, CurTime())
+    return (tick and CallTickTask or CallTask)(index, tick and CurTime())
 end
 
 --- Remove task by index
