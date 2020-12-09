@@ -128,7 +128,7 @@ end
 --- Remove task by index
 ---@param index number
 function Remove(index, tick)
-    remove(tick and tick_stored or stored, index)
+    return remove(tick and tick_stored or stored, index)
 end
 
 --- Return all tasks
