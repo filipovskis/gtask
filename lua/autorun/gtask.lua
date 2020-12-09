@@ -55,21 +55,29 @@ local function CallTask(index, curtime)
     return false
 end
 
+local function CallTickTask(index)
+    local data = tick_stored[index]
+    if data == nil then return false end
+
+    data.func()
+
+    data.repeats = data.repeats - 1
+    if data.repeats <= 0 then
+        remove(tick_stored, index)
+    end
+
+    return true
+end
+
 hook.Add("Think", "gtask.Think", function()
     local ct = CurTime()
     for index = 1, #stored do
         CallTask(index, ct)
     end
 
-    local index, data = next(tick_stored)
-    if data then
-        data.func()
-
-        data.repeats = data.repeats - 1
-        if data.repeats <= 0 then
-            remove(tick_stored, index)
-        end
-    end
+    CallTickTask(
+        next(tick_stored)
+    )
 end)
 
 module("gtask")
@@ -113,20 +121,14 @@ end
 
 --- Force call task by index
 ---@param index number
-function Call(index)
-    return CallTask(index, CurTime())
+function Call(index, tick)
+    return (tick and CallTickTask or CallTask)(index, CurTime())
 end
 
 --- Remove task by index
 ---@param index number
-function Remove(index)
-    remove(stored, index)
-end
-
---- Remove tick-task by index
----@param index number
-function RemoveTick(index)
-    remove(tick_stored, index)
+function Remove(index, tick)
+    remove(tick and tick_stored or stored, index)
 end
 
 --- Return all tasks
