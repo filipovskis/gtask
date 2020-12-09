@@ -132,5 +132,5 @@ end
 --- Return all tasks
 ---@return table
 function GetTable()
-    return stored
+    return stored, tick_stored
 end
