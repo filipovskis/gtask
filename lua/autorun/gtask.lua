@@ -22,50 +22,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
-local remove, CurTime, unpack, isstring, isnumber, isfunction = table.remove, CurTime, unpack, isstring, isnumber, isfunction
+local remove, CurTime, isstring, isnumber, isfunction, assert, next = table.remove, CurTime, isstring, isnumber, isfunction, assert, next
 
-local task = {}
-local stored = {}
+local isTickTaskRunning = false
+local stored, tick_stored = {}, {}
 
-local function NewTask(data)
-    local index = #stored + 1
-
-    data.started = CurTime()
-    data.index = index
-
-    stored[index] = data
-end
-
-local function CallTask(index)
-    local curtime = CurTime()
+local function CallTask(index, curtime)
     local data = stored[index]
-    local time = data.time
-    local started = data.started
-    local difference = curtime - started
-    local repeats = data.repeats or 1
-    local done = false
 
-    if difference >= time then
-        if not data.infinite then
-            if repeats > 0 then
-                data.started = curtime
-                repeats = repeats - 1
-            end
+    local diff, repeats = curtime - data.started, data.repeats
 
-            if repeats < 1 then
-                done = true
-            end
-        else
+    if data.infinite then
+        data.func()
+        return true
+    elseif diff >= data.time then
+        if repeats > 0 then
             data.started = curtime
+            repeats = repeats - 1
         end
 
-        data.func( unpack(data.args) )
+        data.func()
 
-        if done then
+        if repeats < 1 then
             remove(stored, index)
+        else
+            data.repeats = repeats
         end
-
-        data.repeats = repeats
 
         return true
     end
@@ -73,68 +55,82 @@ local function CallTask(index)
     return false
 end
 
---- Create a simple task
+hook.Add("Think", "Task.Think", function()
+    local ct = CurTime()
+    for index = 1, #stored do
+        CallTask(index, ct)
+    end
+
+    local index, data = next(tick_stored)
+    if data then
+        data.func()
+
+        data.repeats = data.repeats - 1
+        if data.repeats <= 0 then
+            remove(tick_stored, index)
+        end
+    end
+end)
+
+module("gtask")
+
+--- Create a task
 ---@param time number
 ---@param func function
-function task.Simple(time, func, ...)
-    assert(time, "<time> cannot be empty")
-    assert(func, "<func> cannot be empty")
-    assert(isnumber(time), "<time> should be a number")
-    assert(isfunction(func), "<func> must be a function")
-
-    NewTask({
-        time = time,
-        func = func,
-        args = {...}
-    })
-end
-
---- Create a task with identifier
---- Feature to set repetitions
----@param name string
----@param time number
 ---@param repeats number
----@param func function
-function task.Create(name, time, repeats, func, ...)
-    assert(name, "<name> cannot be empty")
-    assert(time, "<time> cannot be empty")
-    assert(func, "<func> cannot be empty")
-    assert(isstring(name), "<name> should be a string")
+function Create(time, func, repeats)
     assert(isnumber(time), "<time> should be a number")
     assert(isfunction(func), "<func> must be a function")
 
-    NewTask({
+    repeats = repeats or 1
+
+    local id = #stored + 1
+    stored[id] = {
+        started = CurTime(),
         time = time,
         func = func,
         repeats = repeats,
-        infinite = (repeats == 0),
-        name = name,
-        args = {...}
-    })
+        infinite = repeats == 0,
+    }
+    return id
 end
 
---- Remove task by identifier
----@param name string
-function task.Remove(name)
-    local timer_name
-    for index, data in ipairs(stored) do
-        timer_name = data.name or ""
-        if (timer_name == name) then
-            remove(stored, index)
-        end
-    end
+--- Create a tick-task (1 tick = 1 task running)
+---@param time number
+---@param func function
+function CreateTick(time, func, repeats)
+    assert(isnumber(time), "<time> should be a number")
+    assert(isfunction(func), "<func> must be a function")
+
+    local id = #tick_stored + 1
+    tick_stored[id] = {
+        func = func,
+        repeats = repeats or 1
+    }
+
+    return id
+end
+
+--- Force call task by index
+---@param index number
+function Call(index)
+    return CallTask(index, CurTime())
+end
+
+--- Remove task by index
+---@param index number
+function Remove(index)
+    remove(stored, index)
+end
+
+--- Remove tick-task by index
+---@param index number
+function RemoveTick(index)
+    remove(tick_stored, index)
 end
 
 --- Return all tasks
 ---@return table
-function task.GetTable()
+function GetTable()
     return stored
 end
-
-hook.Add("Think", "Task.Think", function()
-    for index in ipairs(stored) do
-        CallTask(index)
-    end
-end)
-
-_G["task"] = task
