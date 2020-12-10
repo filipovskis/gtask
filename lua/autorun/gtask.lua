@@ -51,18 +51,20 @@ local function CallTask(index)
         if diff >= data.time then
             local repeats = data.repeats
 
-            data.func( unpack(data.args) )
-
             if not data.infinite then
                 if repeats == 1 then
                     remove(stored, index)
-                    return true
+                    goto done
                 end
 
                 data.repeats = repeats - 1
             end
 
             data.started = now
+
+            ::done::
+
+            data.func( unpack(data.args) )
         end
     end
 end
