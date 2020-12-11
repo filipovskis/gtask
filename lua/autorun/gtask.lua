@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
-local CurTime, remove, ipairs, unpack = CurTime, table.remove, ipairs, unpack
+local CurTime, remove, ipairs, unpack, assert, isnumber, isstring, isfunction = CurTime, table.remove, ipairs, unpack, assert, isnumber, isstring, isfunction
 
 local task = {}
 local stored = {}
@@ -73,6 +73,9 @@ end
 ---@param time number
 ---@param func function
 function task.Simple(time, func, ...)
+    assert(isnumber(time))
+    assert(isfunction(func))
+
     return NewTask({
         time = time,
         func = func,
@@ -87,6 +90,14 @@ end
 ---@param repeats number
 ---@param func function
 function task.Create(name, time, repeats, func, ...)
+    assert(isstring(name))
+    assert(isnumber(time))
+    assert(isfunction(func))
+
+    if task.Exists(name) then
+       task.Kill(name)
+    end
+
     local infinite = (repeats == 0)
         
     return NewTask({
@@ -149,6 +160,15 @@ function task.TimeLeft(name)
     local diff = (CurTime() - obj.started)
 
     return obj.time - diff
+end
+
+--- Get task delay
+---@param name string
+---@return number
+function task.GetDelay(name)
+    local obj = task.Get(name)
+
+    return obj.time
 end
 
 --- Pause or unpause task
