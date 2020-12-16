@@ -139,8 +139,9 @@ end
 ---@param name string
 function task.Kill(name)
     local index = select(2, task.Get(name))
-
-    remove(stored, index)
+    if index then
+        remove(stored, index)
+    end
 end
 
 --- Get how many repetitions left
