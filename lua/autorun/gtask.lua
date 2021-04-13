@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
-local VERSION = 111
+local VERSION = 112
 
 if gtask and (not gtask.version or gtask.version <= VERSION) then
     return
@@ -130,7 +130,7 @@ end
 --- Get all tasks
 ---@return table
 function task.GetTable()
-    return stored
+    return table.Copy(stored)
 end
 
 --- Check if task with given name exists
