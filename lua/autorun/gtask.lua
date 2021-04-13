@@ -138,7 +138,7 @@ end
 --- *Alias: task.Remove*
 ---@param name string
 function task.Kill(name)
-    local index = select(2, task.Get(name))
+    local _, index = task.Get(name)
     if index then
         remove(stored, index)
     end
