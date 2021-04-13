@@ -22,9 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
+local VERSION = 111
+
+if gtask and (not gtask.version or gtask.version <= VERSION) then
+    return
+end
+
 local CurTime, remove, ipairs, unpack, assert, isnumber, isstring, isfunction = CurTime, table.remove, ipairs, unpack, assert, isnumber, isstring, isfunction
 
-local task = {}
+local task = {version = VERSION}
 local stored = {}
 
 local function NewTask(data)
