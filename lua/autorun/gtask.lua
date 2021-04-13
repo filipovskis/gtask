@@ -99,7 +99,7 @@ function task.Create(name, time, repeats, func, ...)
     end
 
     local infinite = (repeats == 0)
-        
+
     return NewTask({
         name = name,
         time = time,
@@ -177,7 +177,7 @@ end
 ---@param bool boolean
 function task.Pause(name, bool)
     local obj = task.Get(name)
-    
+
     obj.paused = bool
 end
 
@@ -185,7 +185,7 @@ end
 ---@param name string
 function task.Toggle(name)
     local obj = task.Get(name)
-    
+
     obj.paused = not obj.paused
 end
 
