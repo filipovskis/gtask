@@ -95,7 +95,7 @@ function task.Create(name, time, repeats, func, ...)
     assert(isfunction(func))
 
     if task.Exists(name) then
-       task.Kill(name)
+        task.Kill(name)
     end
 
     local infinite = (repeats == 0)
