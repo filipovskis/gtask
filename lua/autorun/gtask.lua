@@ -22,13 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
-local VERSION = 112
+local VERSION = 113
 
 if gtask and (not gtask.version or gtask.version <= VERSION) then
     return
 end
 
-local CurTime, remove, ipairs, unpack, assert, isnumber, isstring, isfunction = CurTime, table.remove, ipairs, unpack, assert, isnumber, isstring, isfunction
+local CurTime, remove, unpack, assert, isnumber, isstring, isfunction = CurTime, table.remove, unpack, assert, isnumber, isstring, isfunction
 
 local task = {version = VERSION}
 local stored = {}
@@ -47,32 +47,27 @@ end
 
 local function CallTask(index)
     local data = stored[index]
-    if data then
+    if not data or data.paused then return end
 
-        if data.paused then return end
+    local now = CurTime()
+    local diff = now - data.started
+    if diff < data.time then return end
 
-        local now = CurTime()
-        local diff = now - data.started
-
-        if diff >= data.time then
-            local repeats = data.repeats
-
-            if not data.infinite then
-                if repeats == 1 then
-                    remove(stored, index)
-                    goto done
-                end
-
-                data.repeats = repeats - 1
-            end
-
-            data.started = now
-
-            ::done::
-
-            data.func( unpack(data.args) )
+    local repeats = data.repeats
+    if not data.infinite then
+        if repeats == 1 then
+            remove(stored, index)
+            goto done
         end
+
+        data.repeats = repeats - 1
     end
+
+    data.started = now
+
+    ::done::
+
+    data.func( unpack(data.args) )
 end
 
 --- Create simple task
@@ -120,7 +115,9 @@ end
 ---@param name string
 ---@return table
 function task.Get(name)
-    for index, data in ipairs(stored) do
+    local length = #stored
+    for index=1, length do
+        local data = stored[index]
         if (data.name == name) then
             return data, index
         end
@@ -214,10 +211,13 @@ end
 
 task.Remove = task.Kill
 
-hook.Add("Tick", "gtask.Tick", function()
-    for index = 1, #stored do
+local run_timers = function()
+    local length = #stored
+    for index = 1, length do
         CallTask(index)
     end
-end)
+end
+
+hook.Add("Tick", "gtask.Tick", run_timers)
 
 _G.gtask = task
