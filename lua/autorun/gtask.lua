@@ -45,12 +45,11 @@ local function NewTask(data)
     return index
 end
 
-local function CallTask(index)
+local function CallTask(index, curtime)
     local data = stored[index]
     if not data or data.paused then return end
 
-    local now = CurTime()
-    local diff = now - data.started
+    local diff = curtime - data.started
     if diff < data.time then return end
 
     local repeats = data.repeats
@@ -63,7 +62,7 @@ local function CallTask(index)
         data.repeats = repeats - 1
     end
 
-    data.started = now
+    data.started = curtime
 
     ::done::
 
@@ -116,7 +115,7 @@ end
 ---@return table
 function task.Get(name)
     local length = #stored
-    for index=1, length do
+    for index = 1, length do
         local data = stored[index]
         if (data.name == name) then
             return data, index
@@ -213,8 +212,9 @@ task.Remove = task.Kill
 
 local run_timers = function()
     local length = #stored
+    local curtime = CurTime()
     for index = 1, length do
-        CallTask(index)
+        CallTask(index, curtime)
     end
 end
 
