@@ -117,7 +117,7 @@ function task.Get(name)
     local length = #stored
     for index = 1, length do
         local data = stored[index]
-        if (data.name == name) then
+        if data and data.name == name then
             return data, index
         end
     end
