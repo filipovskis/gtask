@@ -213,6 +213,21 @@ task.Remove = task.Kill
 local run_timers = function()
     local curtime = CurTime()
     local length = max_table_number(stored)
+    if length > 1000 and length > #stored then --Rebase if we surpass 1000 "timers" and our length is greater than the actual table length, if what you're working on has more than 1000 real timers then idk what you're doing
+        local dummy_table = {}
+        for index, data in pairs(stored) do
+            dummy_table[#dummy_table + 1] = data
+        end
+
+        stored = {}
+        for index = 1, #dummy_table do
+            local data = dummy_table[index]
+            stored[index] = data
+        end
+
+        length = #stored
+    end
+
     for index = 1, length do
         CallTask(index, curtime)
     end
