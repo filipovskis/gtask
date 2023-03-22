@@ -213,7 +213,7 @@ task.Remove = task.Kill
 local next_check_time = 0
 local next_cycle_time = 0.25
 local function ValidifyTimers(curtime) --Check every 0.25 seconds to ensure our timers are valid relative to the functions
-    if collect_time >= curtime then return end
+    if next_check_time >= curtime then return end
     next_check_time = curtime + next_cycle_time
 
     local length = #stored
