@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
-local VERSION = 113
+local VERSION = 114
 
 if gtask and (not gtask.version or gtask.version <= VERSION) then
     return
