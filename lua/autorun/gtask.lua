@@ -210,9 +210,31 @@ end
 
 task.Remove = task.Kill
 
-local run_timers = function()
+local next_check_time = 0
+local next_cycle_time = 0.25
+local function ValidifyTimers(curtime) --Check every 0.25 seconds to ensure our timers are valid relative to the functions
+    if collect_time >= curtime then return end
+    next_check_time = curtime + next_cycle_time
+
     local length = #stored
+    for index, data in pairs(stored) do
+        if index <= length then continue end --Our created task cannot be reached if we get past this
+
+        if data.infinite or data.repeats > 1 then
+            task.Create(data.name, data.time, data.repeats, data.func, unpack(data.args))
+        elseif not data.infinite and data.repeats == 1 then
+            task.Simple(data.time, data.func, unpack(data.args))
+        else
+            task.Remove(data.name)
+        end
+    end
+end
+
+local run_timers = function()
     local curtime = CurTime()
+    ValidifyTimers(curtime)
+
+    local length = #stored
     for index = 1, length do
         CallTask(index, curtime)
     end
