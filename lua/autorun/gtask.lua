@@ -22,19 +22,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
-local VERSION = 113
+local VERSION = 114
 
 if gtask and (not gtask.version or gtask.version <= VERSION) then
     return
 end
 
-local CurTime, remove, unpack, assert, isnumber, isstring, isfunction = CurTime, table.remove, unpack, assert, isnumber, isstring, isfunction
+local CurTime, remove, unpack, assert, isnumber, isstring, isfunction, max_table_number = CurTime, table.remove, unpack, assert, isnumber, isstring, isfunction, table.maxn
 
 local task = {version = VERSION}
 local stored = {}
 
 local function NewTask(data)
-    local index = #stored + 1
+    local index = max_table_number(stored) + 1
 
     data.started = CurTime()
     data.paused = false
@@ -114,7 +114,7 @@ end
 ---@param name string
 ---@return table
 function task.Get(name)
-    local length = #stored
+    local length = max_table_number(stored)
     for index = 1, length do
         local data = stored[index]
         if data and data.name == name then
@@ -211,8 +211,23 @@ end
 task.Remove = task.Kill
 
 local run_timers = function()
-    local length = #stored
     local curtime = CurTime()
+    local length = max_table_number(stored)
+    if length > 1000 and length > #stored then --Rebase if we surpass 1000 "timers" and our length is greater than the actual table length, if what you're working on has more than 1000 real timers then idk what you're doing
+        local dummy_table = {}
+        for index, data in pairs(stored) do
+            dummy_table[#dummy_table + 1] = data
+        end
+
+        stored = {}
+        for index = 1, #dummy_table do
+            local data = dummy_table[index]
+            stored[index] = data
+        end
+
+        length = #stored
+    end
+
     for index = 1, length do
         CallTask(index, curtime)
     end
